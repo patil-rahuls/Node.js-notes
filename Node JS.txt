@@ -1,0 +1,210 @@
+Node JS
+    JS runtime built on Chrome's V8 Engine.
+
+Why Node JS
+    Non Blocking I/O
+        I/O means Data Input and Output. It can be reading data from file system, from a server, querying database etc.
+        I/O operation takes time.
+        Non Blocking I/O example: Node JS can do other things(continue scripts, fire another requests, etc) while waiting for a response from database.
+        Non Blocking I/O was implemented in Browser. If it was blocking, the screen would freeze before user while processing an I/O.
+        It makes it lightweight and efficient.
+    NPM
+        Largest Package ecosystem in the world. It has package for almost all functionalities.
+        It comes with NodeJS installation.
+
+Node Modules
+    Node documentation.
+
+Import Your Own Files/Modules
+    // e.g. 1
+    utils.js
+        const name = "rahul"
+        module.exports = name
+
+    main.js
+        const name = require('./utils.js')
+        console.log(name)
+
+    // e.g. 2
+    utils.js
+        const name = "rahul"
+        const sum = (a,b) => a+b
+        module.exports = {name, sum}
+
+    main.js
+        const {name, sum} = require('./utils.js')
+        console.log(name)
+        console.log(sum(2,6))
+
+Importing npm Modules
+    When we install Node JS, we also get access to npm command line.
+    So we can use commands starting from 'npm'. e.g. npm -v
+
+    First initialize npm in the project root.
+        npm init
+        It creates a file (package.json) which is used to manage our project dependencies.
+
+    Install a package from npm
+        npm install <packageName>@10.2.2 OR npm i <packageName>@10.2.2 (10.2.2 is the version)
+        After running this command, 3 things happen.
+            1. package.json file is updated. In 'dependencies' node, the installed dependency is listed.
+            2. directory 'node-modules' is created. Contains code for the dependencies that we install.
+            3. and a file called package-lock.json is created.
+
+            Now to require the installed package in main.js(let's say we installed the package called 'validator'):
+
+            const validator = require('validator') // observe that we didn't use './' in require statement.
+            console.log(validator.isEmail('rahul@gmail.com'))
+            When we require a npm library using 'require()' it checks that library code in 'node_modules' folder.
+
+        This is useful because, suppose we delete that 'node_modules' folder, then the script will definately throw error.
+        To install all those dependencies back, we hit this command:
+            npm install OR npm i
+        This will, based on the context of package.json and package-lock.json (dependencies mentioned in these json files),
+        recreate the packages required for our application.
+
+        Also, while shipping your code to your audience, you dont need to ship your project folder's 'node_modules' folder.
+        Just the package.json and package-lock.json. That's it, and user will do npm install to start using your application.
+
+Use chalk package to print colorful messages in console.
+
+Global NPM packages
+    So far we used so called 'locally installed packages'. That's when we explicitly install our dependencies in our project in 'node_modules' folder.
+    These local dependencies are listed in package.json file.
+
+    'nodemon' - just like live-server. It prints your output to the terminal on saving the files of your project.
+    To install a package globally, use the -g flag:
+        npm install nodemom@1.18.5 -g
+    Note that after this command finishes, nothing changes in package.json, package-lock.json and node_modules folder of our project.
+    This is because we installed the package globally on our node js server.
+
+    To run our app using nodemon:
+        nodemon myApp.js
+    Any change we do in our code and save it, it (executes the code and)reflects the changes in terminal instantly.
+
+File Systems
+
+Command Line Arguments
+    Getting input from user into your node js application.
+    Remember we have may "global" objects. We see it by typing global inside node command line terminal.
+    One of those global objects is "process".
+    there are several properties and methods of process object, like process.exit(), process.argv etc.
+
+    process.argv (argv - argument vector)
+        argv is an array of the arguents supplied to the script while executing it.
+        for e.g. in our main.js, we have
+            console.log(process.argv);
+        and we run it by passing some arguments:
+            node main.js rahul
+            // It will output an array of arguments that i passed. in this case, ['path/to/the/node_js/executable/on/your/platform', 'path/to/your/node_js/application', 'rahul' ]
+            // first 2 items in argv are always there. from 3rd onwards are our cli arguments.
+
+    Argument Parsing with 'Yargs'
+        require('yargs');
+        console.log(yargs.argv);
+
+        node main.js add --title='Travel Plan'
+        // This is an object NOT an array.
+        // prints : { _ : ['add'] , title:'Travel Plan', '$0': 'main.js' }
+        $0 is the path to our node js application.
+        anything we pass with two hyphens (--), is an object created inside yargs object.
+        everything else is in '_' property of yargs.
+
+        yargs has a few inbuilt commands
+            --help
+            --version
+        We can use these to manually add our own help content and version.
+        eg. yargs.version('1.0.2');
+        so node main.js --version will print our version 1.0.2
+
+        We can set a command and set diff properties of it using yargs.
+        e.g. add command.
+            yargs.command({
+                command: 'add',
+                describe: 'Add a note',
+                builder: {
+                    title:{
+                        describe: 'Note title',
+                        demandOption: true, // required argument
+                        type: string
+                    },
+                },
+                handler: function(argv){
+                    console.log("adding a Note.", argv)
+                    // do the necessary stuff to save note.
+                    console.log("Title : ${argv.title}")
+                }
+            });
+            On running node nma.js add
+            it will print
+                'adding a note'
+
+        yargs.parse() // parses the command line arguments and run the appropriate command handler.
+
+JSON
+    const fs = require('fs');
+    const book = {
+        title: 'Ignited Minds',
+        author: 'Shri A. P. J. Abdul Kalam'
+    };
+    const bookJSON = JSON.stringify(book);
+
+    let parsedBook = JSON.parse(bookJSON);
+    console.log(parsedBook.title);
+
+    fs.writeFileSync('1.json', bookJSON);
+
+    const dataBuffer = fs.readFileSync('1.json') // we name this variable bufffer because it does not really is a string, but a binary data read from file into buffer.
+    console.log(dataBuffer); // this prints some data like <Buffer 7b 4b 1d 33 ..... >
+
+    We use toString() method to convert this buffer into string.
+    const bookStr = dataBuffer.toString()
+    const data = JSON.parse(bookStr);
+    console.log(data.title); // Ignited Minds
+
+Imports and Exports
+    [FILE 1 : util.js]
+        const fs = require('fs');
+
+        const getNotes = () => {
+            return 'Your Notes...';
+        }
+
+        const loadNotes = () => {
+            try{    // try catch because at the first run , the file notes.json wont exist, so return empty array.
+                const notesBuffer = fs.readFileSync('notes.json');
+                const notesJSON = notesBuffer.toString();
+                return JSON.parse(notesJSON);
+            }catch(e){
+                console.log(e);
+                return [];
+            }
+        }
+
+        const addNote = (title, body) => {
+            const notes = loadNotes();
+            const duplicateNote = notes.filter(function(note){
+                return note.title === title // notes with same title will be filtered out.
+            });
+            if(!duplicateNote.length) {
+                notes.push({
+                    title: title,
+                    body: body
+                });
+                saveNotes(notes);
+            }else{
+                console.log("Note Title Already Taken")
+            }
+        }
+
+        const saveNotes = (notes){
+            const noteJSON = JSON.stringify(notes);
+            fs.writeFileSync('notes.json', noteJSON);
+        }
+
+        const removeNote = (note){
+            const notes = loadNotes();
+
+        }
+
+    [FILE 2 : main.js]
